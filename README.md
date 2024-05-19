@@ -27,10 +27,23 @@ Features
 
 # Installation
 
+## First at all download library
+
+```bash
+$ pip install pyTelegramBotAPI
+```
+
+- To **upgrade** library
+
+```bash
+$ pip install pytelegrambotapi --upgrade
+```
+
 1.Clone the repository:
 
 ```bash
 git clone https://github.com/IOleg-crypto/python-telegram-bot.git
+pip install pytelegrambotapi --upgrade
 ```
 
 2.Navigate to the project directory:
