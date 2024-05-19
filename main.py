@@ -25,16 +25,18 @@ def setnumber(message):
 def site(message):
     bot.send_message(message.chat.id, "That author`s website: https://github.com/IOleg-crypto/python-telegram-bot")
    
-@bot.message_handler(commands=['clearchat'])
-def clearchat(message):
+@bot.message_handler(commands=['getbutton'])
+def getbutton(message):
     markup = types.InlineKeyboardMarkup()
-    bot.send_message(message.chat.id, 'Chat cleared') 
-    markup.add(types.InlineKeyboardButton("Clear chat " , callback_data = 'clearchat'))
-    #markup.row(btn)
+    btn1 = types.InlineKeyboardButton('GitHub', url='https://github.com/IOleg-crypto/python-telegram-bot')
+    #params : use only '' because you don`t see button`
+    markup.row(btn1)
+    bot.reply_to(message, "That author`s website: https://github.com/IOleg-crypto/python-telegram-bot", reply_markup=markup)
+   
     
-@bot.callback_query_handler(func= lambda callback: True)
-def callback_inline(callback):
-    if callback.data == 'clearchat':
-       bot.delete_message(callback.message.chat.id, callback.message.message_id - 1000)
+#@bot.callback_query_handler(func= lambda callback: True)
+#def callback_inline(callback):
+   # if callback.data == 'clearchat':
+    #   bot.delete_message(callback.message.chat.id, callback.message.message_id - 1000)
 
 bot.polling(none_stop=True)
