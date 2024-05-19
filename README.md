@@ -1,6 +1,3 @@
-![VSCode](https://img.shields.io/badge/Vscode-007ACC?style=for-the-badge&
-logo=visualstudiocode&logoColor=white)
-
 ![Python](https://img.shields.io/badge/python-%2314354C.svg?style=for-the-badge&logo=python&logoColor=whit)
 
 ![Subtext](https://img.shields.io/badge/sublime%20text-%23FF9800.svg?&style=for-the-badge&logo=sublime%20text&logoColor=black)
@@ -43,7 +40,7 @@ $ pip install pytelegrambotapi --upgrade
 
 ```bash
 git clone https://github.com/IOleg-crypto/python-telegram-bot.git
-pip install pytelegrambotapi --upgrade
+
 ```
 
 2.Navigate to the project directory:
