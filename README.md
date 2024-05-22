@@ -30,14 +30,14 @@ $ pip install pyTelegramBotAPI
 $ pip install pytelegrambotapi --upgrade
 ```
 
-1. Clone the repository:
+Clone the repository:
 
 ```bash
 $ git clone https://github.com/IOleg-crypto/python-telegram-bot.git
 
 ```
 
-2. Navigate to the project directory:
+Navigate to the project directory:
 
 ```bash
 $ cd python-telegram-bot
@@ -49,7 +49,7 @@ $ cd python-telegram-bot
 
 Set your Telegram bot token in the config.py file. Get the token from [BotFather](https://t.me/BotFather).
 
-3. Run the bot
+Run the bot
 
 ```bash
 python3 main.py
