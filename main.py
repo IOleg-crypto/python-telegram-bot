@@ -9,6 +9,9 @@ bot = telebot.TeleBot('6895824327:AAEyCfrTRh-7wGuIjrAVSe9y2gXxx1Vpunk')
 def start(message):
     local_name = f'Hello, <b>{message.from_user.first_name + message.from_user.last_name}</b>'
     bot.send_message(message.chat.id , local_name , parse_mode = 'html')
+@bot.message_handler(commands=['website'])
+def site(message):
+    bot.send_message(message.chat.id, "That author`s website: {https://github.com/IOleg-crypto/python-telegram-bot}")
     
 @bot.message_handler()
 def get_user_text(message):
@@ -19,9 +22,6 @@ def get_user_text(message):
     else:
         bot.send_message(message.chat.id, "I don`t understand you")
           
-@bot.message_handler(commands=['website'])
-def site(message):
-    bot.send_message(message.chat.id, f"That author`s website: {https://github.com/IOleg-crypto/python-telegram-bot}")
    
 
 bot.polling(none_stop = True)
