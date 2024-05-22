@@ -67,4 +67,4 @@ This project is licensed under the MIT License. See the LICENSE file for details
 
 For questions or suggestions, please open an issue or contact the repository owner.
 
-For more details, visit the ![Documentation commands of bot](https://pypi.org/project/pyTelegramBotAPI/#writing-your-first-bot).
+For more details, visit the [Documentation commands of bot](https://pypi.org/project/pyTelegramBotAPI/#writing-your-first-bot).
