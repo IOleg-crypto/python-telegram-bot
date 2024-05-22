@@ -1,6 +1,6 @@
 import telebot
 from telebot import types
-
+import requests
 #token to connect bot
 bot = telebot.TeleBot('6895824327:AAEyCfrTRh-7wGuIjrAVSe9y2gXxx1Vpunk') 
 
@@ -8,11 +8,40 @@ bot = telebot.TeleBot('6895824327:AAEyCfrTRh-7wGuIjrAVSe9y2gXxx1Vpunk')
 
 def start(message):
     local_name = f'Hello, <b>{message.from_user.first_name + message.from_user.last_name}</b>'
-    bot.send_message(message.chat.id , local_name , parse_mode = 'html')
-@bot.message_handler(commands=['website'])
+    say_hello = bot.send_message(message.chat.id , local_name , parse_mode = 'html')
+    markup = types.ReplyKeyboardMarkup(row_width=2)
+    itembtn1 = types.KeyboardButton('Clear chat')
+
+    markup.add(itembtn1)
+    bot.send_message(message.chat.id, say_hello, reply_markup=markup)
+    bot.register_next_step_handler(message, on_button_click)
+    
+def on_button_click(message):
+    bot.send_message(message.chat.id, 'Cleared')
+                  
+@bot.message_handler(commands=['website'])         
 def site(message):
     bot.send_message(message.chat.id, "That author`s website: {https://github.com/IOleg-crypto/python-telegram-bot}")
     
+@bot.message_handler(commands=['song'])  
+
+def find_song(message):
+    bot.reply_to(message.chat.id, "Welcome! Send me a song name and I'll find it for you.")
+    song_name = message.text
+    try:
+        itunes_url = f"https://itunes.apple.com/search?term={song_name}&limit=1"
+        response = requests.get(itunes_url)
+        data = response.json()
+        
+        if data['resultCount'] > 0:
+            result = data['results'][0]
+            song_info = f"Song: {result['trackName']}\nArtist: {result['artistName']}\nAlbum: {result['collectionName']}\nLink: {result['trackViewUrl']}"
+            bot.reply_to(message, song_info)
+        else:
+            bot.reply_to(message, "Sorry, I couldn't find that song.")
+    except Exception as e:
+        bot.reply_to(message, "An error occurred. Please try again later.")
+        print(f"Error: {e}")    
 @bot.message_handler()
 def get_user_text(message):
     if message.text == "Hello":
@@ -21,7 +50,5 @@ def get_user_text(message):
          bot.send_message(message.chat.id,f'Your id : {message.from_user.id}')
     else:
         bot.send_message(message.chat.id, "I don`t understand you")
-          
-   
 
 bot.polling(none_stop = True)
