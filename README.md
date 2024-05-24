@@ -30,26 +30,26 @@ $ pip install pyTelegramBotAPI
 $ pip install pytelegrambotapi --upgrade
 ```
 
-Install library to searching music in **Spotify**
+- Install library to searching music in **Spotify**
 
 ```bash
 $ pip install pyTelegramBotAPI spotipy
 ```
 
-Install library to searching music in **Google**
+- Install library to searching music in **Google**
 
 ```bash
 $ pip install pyTelegramBotAPI googlesearch-python
 ```
 
-Clone the repository:
+- Clone the repository
 
 ```bash
 $ git clone https://github.com/IOleg-crypto/python-telegram-bot.git
 
 ```
 
-Navigate to the project directory:
+- Navigate to the project directory
 
 ```bash
 $ cd python-telegram-bot
@@ -59,9 +59,9 @@ $ cd python-telegram-bot
 
 <img src = "https://miro.medium.com/v2/resize:fit:1000/1*K1_Z6dddJkEdQ4hMyUzHcQ.png">
 
-Set your Telegram bot token in the config.py file. Get the token from [BotFather](https://t.me/BotFather).
+- Set your Telegram bot token in the config.py file. Get the token from [BotFather](https://t.me/BotFather).
 
-Run the bot
+- Run the bot
 
 ```bash
 python3 main.py
