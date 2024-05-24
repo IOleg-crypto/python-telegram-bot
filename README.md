@@ -30,6 +30,18 @@ $ pip install pyTelegramBotAPI
 $ pip install pytelegrambotapi --upgrade
 ```
 
+Install library to searching music in **Spotify**
+
+```bash
+$ pip install pyTelegramBotAPI spotipy
+```
+
+Install library to searching music in **Google**
+
+```bash
+$ pip install pyTelegramBotAPI googlesearch-python
+```
+
 Clone the repository:
 
 ```bash
