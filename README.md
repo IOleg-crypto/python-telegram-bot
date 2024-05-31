@@ -45,6 +45,7 @@ $ pip install pyTelegramBotAPI googlesearch-python
 - Clone the repository
 
 ```bash
+
 $ git clone https://github.com/IOleg-crypto/python-telegram-bot.git
 
 ```

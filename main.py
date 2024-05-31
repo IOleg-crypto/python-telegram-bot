@@ -9,12 +9,13 @@ from googlesearch import search
 #token to connect bot
 bot = telebot.TeleBot('6895824327:AAEyCfrTRh-7wGuIjrAVSe9y2gXxx1Vpunk') 
 
-def get_spotify_client(chat_id):
-    if chat_id in user_credentials and 'client_id' in user_credentials[chat_id] and 'client_secret' in user_credentials[chat_id]:
+class Functions:
+      def get_spotify_client(chat_id):
+       if chat_id in user_credentials and 'client_id' in user_credentials[chat_id] and 'client_secret' in user_credentials[chat_id]:
         client_id = user_credentials[chat_id]['client_id']
         client_secret = user_credentials[chat_id]['client_secret']
         return spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=client_id, client_secret=client_secret))
-    else:
+      else:
         return None       
         
 SPOTIFY_CLIENT_ID = 'YOUR_SPOTIFY_CLIENT_ID'
@@ -159,12 +160,9 @@ def find_song(message):
     except IndexError:
         bot.reply_to(message, "Please provide a Spotify track URL. For example: /findspotify https://open.spotify.com/track/xyz")
 
-''''
-@bot.message_handler()
-def get_user_text(message):
-    if message.text == "Hello":
-        bot.send_message(message.chat.id, "Hello")
-    elif message.text == "id":
-         bot.send_message(message.chat.id,f'Your id : {message.from_user.id}')
-'''''
-bot.polling(none_stop = True)
+
+def main():
+    bot.polling(none_stop = True)
+
+if __name__ == '__main__':
+    main()
