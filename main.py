@@ -5,18 +5,20 @@ from library import *
 
 bot = telebot.TeleBot("6895824327:AAEyCfrTRh-7wGuIjrAVSe9y2gXxx1Vpunk")
 
-variables = function()
-load_function = function()
+SPOTIFY_CLIENT_ID = "YOUR_SPOTIFY_CLIENT_ID"
+SPOTIFY_CLIENT_SECRET = "YOUR_SPOTIFY_CLIENT_SECRET"
+user_credentials = {}
+messages_to_clear = {}
 
 
 def get_spotify_client(chat_id):
     if (
-        chat_id in variables.variables.user_credentials
-        and "client_id" in variables.variables.user_credentials[chat_id]
-        and "client_secret" in variables.variables.user_credentials[chat_id]
+        chat_id in user_credentials
+        and "client_id" in user_credentials[chat_id]
+        and "client_secret" in user_credentials[chat_id]
     ):
-        client_id = variables.variables.user_credentials[chat_id]["client_id"]
-        client_secret = variables.variables.user_credentials[chat_id]["client_secret"]
+        client_id = user_credentials[chat_id]["client_id"]
+        client_secret = user_credentials[chat_id]["client_secret"]
         return spotipy.Spotify(
             auth_manager=SpotifyClientCredentials(
                 client_id=client_id, client_secret=client_secret
@@ -28,10 +30,25 @@ def get_spotify_client(chat_id):
 
 sp = spotipy.Spotify(
     auth_manager=SpotifyClientCredentials(
-        client_id=variables.SPOTIFY_CLIENT_ID,
-        client_secret=variables.SPOTIFY_CLIENT_SECRET,
+        client_id=SPOTIFY_CLIENT_ID,
+        client_secret=SPOTIFY_CLIENT_SECRET,
     )
 )
+
+
+def on_button_click(message):
+    bot.delete_message(message.chat.id, message.message_id - 1)
+
+
+def process_id_step(message):
+    chat_id = message.chat.id
+    client_id = message.text
+
+    if chat_id not in user_credentials:
+        user_credentials[chat_id] = {}
+
+    user_credentials[chat_id]["client_id"] = client_id
+    bot.reply_to(message, "Spotify Client ID set successfully!")
 
 
 @bot.message_handler(commands=["start"])
@@ -45,14 +62,14 @@ def start(message):
 
     markup.add(itembtn1)
     bot.send_message(message.chat.id, say_hello, reply_markup=markup)
-    bot.register_next_step_handler(message, load_function.on_button_click)
+    bot.register_next_step_handler(message, on_button_click)
 
 
 def log_message(message):
     chat_id = message.chat.id
-    if chat_id not in variables.messages_to_clear:
-        variables.messages_to_clear[chat_id] = []
-    variables.messages_to_clear[chat_id].append(message.message_id)
+    if chat_id not in messages_to_clear:
+        messages_to_clear[chat_id] = []
+    messages_to_clear[chat_id].append(message.message_id)
 
 
 def search_spotify(query):
@@ -82,13 +99,13 @@ def find_song(message):
 @bot.message_handler(commands=["clear"])
 def clear_messages(message):
     chat_id = message.chat.id
-    if chat_id in variables.messages_to_clear:
-        for msg_id in variables.messages_to_clear[chat_id]:
+    if chat_id in messages_to_clear:
+        for msg_id in messages_to_clear[chat_id]:
             try:
                 bot.delete_message(chat_id, msg_id)
             except Exception as e:
                 print(f"Failed to delete message {msg_id}: {e}")
-        variables.messages_to_clear[chat_id] = []
+        messages_to_clear[chat_id] = []
     bot.reply_to(message, "Cleared all messages.")
     log_message(message)
 
@@ -96,13 +113,13 @@ def clear_messages(message):
 @bot.message_handler(commands=["set_id"])
 def set_id(message):
     msg = bot.reply_to(message, "Please send your Spotify Client ID")
-    bot.register_next_step_handler(msg, load_function.process_id_step)
+    bot.register_next_step_handler(msg, process_id_step)
 
 
 @bot.message_handler(commands=["set_secret"])
 def set_secret(message):
     msg = bot.reply_to(message, "Please send your Spotify Client Secret")
-    bot.register_next_step_handler(msg, load_function.process_secret_step)
+    bot.register_next_step_handler(msg, process_secret_step)
 
 
 @bot.message_handler(commands=["website"])
@@ -169,9 +186,4 @@ def find_song(message):
         )
 
 
-def main():
-    bot.polling(none_stop=True)
-
-
-if __name__ == "__main__":
-    main()
+bot.polling(none_stop=True)
