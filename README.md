@@ -42,6 +42,13 @@ $ pip install pyTelegramBotAPI spotipy
 $ pip install pyTelegramBotAPI googlesearch-python
 ```
 
+
+- You can install all libraries by one command\
+- 
+```bash
+$ pip install -r requirements.txt
+```
+
 - Clone the repository
 
 ```bash
