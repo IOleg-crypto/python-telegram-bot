@@ -1,6 +1,5 @@
 from library import *
 
-
 # token to connect bot
 
 bot = telebot.TeleBot("6895824327:AAEyCfrTRh-7wGuIjrAVSe9y2gXxx1Vpunk")
@@ -13,9 +12,9 @@ messages_to_clear = {}
 
 def get_spotify_client(chat_id):
     if (
-        chat_id in user_credentials
-        and "client_id" in user_credentials[chat_id]
-        and "client_secret" in user_credentials[chat_id]
+            chat_id in user_credentials
+            and "client_id" in user_credentials[chat_id]
+            and "client_secret" in user_credentials[chat_id]
     ):
         client_id = user_credentials[chat_id]["client_id"]
         client_secret = user_credentials[chat_id]["client_secret"]
