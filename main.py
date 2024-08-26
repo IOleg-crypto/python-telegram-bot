@@ -10,6 +10,7 @@ user_credentials = {}
 messages_to_clear = {}
 
 
+# function to get spotify client credentials
 def get_spotify_client(chat_id):
     if (
             chat_id in user_credentials
@@ -35,10 +36,6 @@ sp = spotipy.Spotify(
 )
 
 
-def on_button_click(message):
-    bot.delete_message(message.chat.id, message.message_id - 1)
-
-
 def process_id_step(message):
     chat_id = message.chat.id
     client_id = message.text
@@ -55,13 +52,7 @@ def start(message):
     local_name = (
         f"Hello, <b>{message.from_user.first_name + message.from_user.last_name}</b>"
     )
-    say_hello = bot.send_message(message.chat.id, local_name, parse_mode="html")
-    markup = types.ReplyKeyboardMarkup(row_width=1)
-    itembtn1 = types.KeyboardButton("Clear chat")
-
-    markup.add(itembtn1)
-    bot.send_message(message.chat.id, say_hello, reply_markup=markup)
-    bot.register_next_step_handler(message, on_button_click)
+    bot.send_message(message.chat.id, local_name, parse_mode="html")
 
 
 def log_message(message):
@@ -83,7 +74,7 @@ def search_spotify(query):
 def find_song(message):
     try:
         query = message.text.split(" ", 1)[1] + " song"
-        results = search(query, num_results=5)
+        results = search(query, num_results=10)
         if results:
             response = "Top search results:\n" + "\n".join(results)
             bot.reply_to(message, response)
@@ -96,17 +87,21 @@ def find_song(message):
 
 
 @bot.message_handler(commands=["clear"])
-def clear_messages(message):
+def clear_chat(message):
     chat_id = message.chat.id
-    if chat_id in messages_to_clear:
-        for msg_id in messages_to_clear[chat_id]:
+
+    # Fetch the chat history
+    try:
+        # You might need to adjust the range or use a loop to handle large numbers of messages
+        for message_id in range(message.message_id, message.message_id - 100, -1):
             try:
-                bot.delete_message(chat_id, msg_id)
+                bot.delete_message(chat_id, message_id)
             except Exception as e:
-                print(f"Failed to delete message {msg_id}: {e}")
-        messages_to_clear[chat_id] = []
-    bot.reply_to(message, "Cleared all messages.")
-    log_message(message)
+                print(f"Could not delete message {message_id}: {e}")
+    except Exception as e:
+        bot.reply_to(message, f"Error while deleting messages: {e}")
+
+    bot.reply_to(message, "Chat cleared.")
 
 
 @bot.message_handler(commands=["set_id"])
@@ -118,19 +113,32 @@ def set_id(message):
 @bot.message_handler(commands=["set_secret"])
 def set_secret(message):
     msg = bot.reply_to(message, "Please send your Spotify Client Secret")
-    bot.register_next_step_handler(msg, process_secret_step)
+    bot.register_next_step_handler(msg, process_id_step)
 
 
 @bot.message_handler(commands=["website"])
 def site(message):
+    # Send the initial message with the website link
     bot.send_message(
         message.chat.id,
-        "That author`s website: {https://github.com/IOleg-crypto/python-telegram-bot}",
+        "That author's repository: https://github.com/IOleg-crypto/",
     )
-    markup = types.ReplyKeyboardMarkup(row_width=1)
+
+    # Create the reply keyboard markup
+    markup = types.ReplyKeyboardMarkup(row_width=2)
     itembtn1 = types.KeyboardButton("Go to website")
     markup.add(itembtn1)
-    bot.send_message(message.chat.id, "Go to website", reply_markup=markup)
+
+    # Send the message with the reply keyboard
+    bot.send_message(message.chat.id, "Click the button below to go to the website:", reply_markup=markup)
+
+
+@bot.message_handler(func=lambda message: message.text == "Go to website")
+def go_to_website(message):
+    bot.send_message(
+        message.chat.id,
+        "Opening the website: https://github.com/IOleg-crypto/",
+    )
 
 
 @bot.message_handler(commands=["finditunes"])
@@ -183,6 +191,15 @@ def find_song(message):
             message,
             "Please provide a Spotify track URL. For example: /findspotify https://open.spotify.com/track/xyz",
         )
+
+
+def info(message):
+    if message.text.lower() == "hello" or message.text.lower() == "hi":
+        bot.reply_to(message, "Hello, how are you?")
+    elif message.text.upper() == "HELLO" or message.text.upper() == "HI":
+        bot.reply_to(message, "Hello, how are you?")
+    else:
+        bot.reply_to(message, "I don't understand. Please type /help.")
 
 
 bot.polling(none_stop=True)
