@@ -2,3 +2,4 @@ requests
 pyTelegramBotAPI
 spotipy
 googlesearch-python
+spotifysearch
