@@ -27,15 +27,6 @@ def get_spotify_client(chat_id):
         return None
 
 
-# Initialize Spotify client
-sp = spotipy.Spotify(
-    auth_manager=SpotifyClientCredentials(
-        client_id=SPOTIFY_CLIENT_ID,
-        client_secret=SPOTIFY_CLIENT_SECRET,
-    )
-)
-
-
 # Function to log messages for future clearing
 def log_message(message):
     chat_id = message.chat.id
@@ -47,6 +38,7 @@ def log_message(message):
 # Start command handler
 @bot.message_handler(commands=["start"])
 def start(message):
+    
     local_name = f"Hello, <b>{message.from_user.first_name + ' ' + message.from_user.last_name}</b>"
     bot.send_message(message.chat.id, local_name, parse_mode="html")
 
@@ -63,6 +55,7 @@ def start(message):
         reply_markup=markup,
     )
 # get song name and artist
+@bot.message_handler(commands=["findgoogle"])
 def get_song_google(message):
     try:
         # Ask the user for the song name
@@ -70,7 +63,7 @@ def get_song_google(message):
         bot.register_next_step_handler(msg, find_song_google)
     except Exception as e:
         bot.reply_to(message, f"An error occurred: {str(e)}")
-
+@bot.message_handler(commands=["finditunes"])
 def get_song_itunes(message):
     try:
         # Ask the user for the song name
@@ -97,9 +90,17 @@ def handle_itunes_button(message):
     get_song_itunes(message)
 
 
+def function(message):
+    return message.text == "Clear" or message.text == "clear"
+
+
+@bot.message_handler(func=function)
+def handle_clear_signal(message):
+    clear_chat(message)
+
 
 # Function to find songs on Google
-@bot.message_handler(commands=["findgoogle"])
+
 def find_song_google(message):
     try:
         query = message.text + " song"
@@ -122,11 +123,13 @@ def clear_chat(message):
     chat_id = message.chat.id
 
     try:
+        # Delete the last 100 messages or until an error occurs
         for message_id in range(message.message_id, message.message_id - 100, -1):
             try:
                 bot.delete_message(chat_id, message_id)
             except Exception as e:
                 print(f"Could not delete message {message_id}: {e}")
+                break  # Break the loop if we can't delete a message
     except Exception as e:
         bot.reply_to(message, f"Error while deleting messages: {e}")
 
@@ -192,7 +195,6 @@ def go_to_website(message):
 
 
 # Function to search iTunes for a song
-@bot.message_handler(commands=["finditunes"])
 def find_song_itunes(message):
     try:
         query = message.text.split(" ", 1)[1]
