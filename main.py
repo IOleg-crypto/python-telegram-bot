@@ -56,6 +56,7 @@ def start(message):
     )
 # get song name and artist
 @bot.message_handler(commands=["findgoogle"])
+
 def get_song_google(message):
     try:
         # Ask the user for the song name
@@ -63,6 +64,7 @@ def get_song_google(message):
         bot.register_next_step_handler(msg, find_song_google)
     except Exception as e:
         bot.reply_to(message, f"An error occurred: {str(e)}")
+
 @bot.message_handler(commands=["finditunes"])
 def get_song_itunes(message):
     try:
