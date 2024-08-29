@@ -2,29 +2,11 @@ from library import *
 from spotifysearch.client import Client
 
 # Bot token and Spotify credentials
-bot = telebot.TeleBot("6895824327:AAEyCfrTRh-7wGuIjrAVSe9y2gXxx1Vpunk")
-SPOTIFY_CLIENT_ID = "YOUR_SPOTIFY_CLIENT_ID"
-SPOTIFY_CLIENT_SECRET = "YOUR_SPOTIFY_CLIENT_SECRET"
+bot = telebot.TeleBot("6895824327:AAEyCfrTRh-7wGuIjrAVSe9y2gXxx1Vpunk")  #your token to access bot
+
 user_credentials = {}
 messages_to_clear = {}
 
-
-# Function to get Spotify client credentials
-def get_spotify_client(chat_id):
-    if (
-            chat_id in user_credentials
-            and "client_id" in user_credentials[chat_id]
-            and "client_secret" in user_credentials[chat_id]
-    ):
-        client_id = user_credentials[chat_id]["client_id"]
-        client_secret = user_credentials[chat_id]["client_secret"]
-        return spotipy.Spotify(
-            auth_manager=SpotifyClientCredentials(
-                client_id=client_id, client_secret=client_secret
-            )
-        )
-    else:
-        return None
 
 
 # Function to log messages for future clearing
@@ -38,7 +20,6 @@ def log_message(message):
 # Start command handler
 @bot.message_handler(commands=["start"])
 def start(message):
-    
     local_name = f"Hello, <b>{message.from_user.first_name + ' ' + message.from_user.last_name}</b>"
     bot.send_message(message.chat.id, local_name, parse_mode="html")
 
@@ -54,9 +35,10 @@ def start(message):
         "Please choose one of the following options:",
         reply_markup=markup,
     )
+
+
 # get song name and artist
 @bot.message_handler(commands=["findgoogle"])
-
 def get_song_google(message):
     try:
         # Ask the user for the song name
@@ -64,6 +46,7 @@ def get_song_google(message):
         bot.register_next_step_handler(msg, find_song_google)
     except Exception as e:
         bot.reply_to(message, f"An error occurred: {str(e)}")
+
 
 @bot.message_handler(commands=["finditunes"])
 def get_song_itunes(message):
@@ -75,11 +58,21 @@ def get_song_itunes(message):
         bot.reply_to(message, f"An error occurred: {str(e)}")
 
 
+@bot.message_handler(commands=["findspotify"])
+def get_song_spotify(message):
+    try:
+        # Ask the user for the song name
+        msg = bot.reply_to(message, "Please enter the song name you want to search for on Spotify.")
+        bot.register_next_step_handler(msg, find_song_spotify)
+    except Exception as e:
+        bot.reply_to(message, f"An error occurred: {str(e)}")
+
 
 # Handlers for button presses
-@bot.message_handler(func=lambda message: message.text == "Find music in Spotify")
-def handle_spotify_button(message):
-    find_song_spotify(message)
+# Example handler to trigger Spotify search
+@bot.message_handler(func=lambda message: message.text.startswith("Find music in Spotify"))
+def handle_spotify_search(message):
+    get_song_spotify(message)
 
 
 @bot.message_handler(func=lambda message: message.text == "Find music in Google")
@@ -118,7 +111,6 @@ def find_song_google(message):
         bot.reply_to(message, f"An error occurred while searching: {str(e)}")
 
 
-
 # Function to clear chat messages
 @bot.message_handler(commands=["clear"])
 def clear_chat(message):
@@ -135,43 +127,8 @@ def clear_chat(message):
     except Exception as e:
         bot.reply_to(message, f"Error while deleting messages: {e}")
 
-    bot.reply_to(message, "Chat cleared.")
+    bot.send_message(message, "Chat cleared.")
 
-
-# Function to set Spotify Client ID
-def process_id_step(message):
-    chat_id = message.chat.id
-    client_id = message.text
-
-    if chat_id not in user_credentials:
-        user_credentials[chat_id] = {}
-
-    user_credentials[chat_id]["client_id"] = client_id
-    bot.reply_to(message, "Spotify Client ID set successfully!")
-
-
-@bot.message_handler(commands=["set_id"])
-def set_id(message):
-    msg = bot.reply_to(message, "Please send your Spotify Client ID")
-    bot.register_next_step_handler(msg, process_id_step)
-
-
-# Function to set Spotify Client Secret
-def process_secret_step(message):
-    chat_id = message.chat.id
-    client_secret = message.text
-
-    if chat_id not in user_credentials:
-        user_credentials[chat_id] = {}
-
-    user_credentials[chat_id]["client_secret"] = client_secret
-    bot.reply_to(message, "Spotify Client Secret set successfully!")
-
-
-@bot.message_handler(commands=["set_secret"])
-def set_secret(message):
-    msg = bot.reply_to(message, "Please send your Spotify Client Secret")
-    bot.register_next_step_handler(msg, process_secret_step)
 
 
 # Function to handle /website command
@@ -212,7 +169,7 @@ def find_song_itunes(message):
         else:
             bot.reply_to(message, "No results found.")
     except IndexError:
-        bot.reply_to(message, "Please provide a song name. For example: /finditunes Imagine")
+        bot.reply_to(message, "Please provide a song name")
 
 
 def search_itunes(query):
@@ -224,21 +181,27 @@ def search_itunes(query):
 
 
 # Function to search Spotify for a song
-@bot.message_handler(commands=["findspotify"])
 def find_song_spotify(message):
     try:
-        query = message.text.split(" ", 1)[1]
-        client = Client(SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET)
-        search_results = client.search(query)
+        query = message.text
+        search_url = f"https://open.spotify.com/search/{query.replace(' ', '%20')}"
+        headers = {"User-Agent": "Mozilla/5.0"}
+        response = requests.get(search_url, headers=headers)
 
-        if search_results and search_results.get_tracks():
-            track = search_results.get_tracks()[0]
-            track_info = f"{track.name} by {track.artist.name}\n{track.url}"
-            bot.reply_to(message, track_info)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
+            results = soup.find_all('a', {'data-testid': 'search-result-item'})
+            if results:
+                top_result = results[0]
+                track_name = top_result.text
+                track_url = f"https://open.spotify.com{top_result['href']}"
+                bot.reply_to(message, f"{track_name}\n{track_url}")
+            else:
+                bot.reply_to(message, "No results found on Spotify.")
         else:
-            bot.reply_to(message, "No results found on Spotify.")
+            bot.reply_to(message, "Failed to retrieve search results.")
     except IndexError:
-        bot.reply_to(message, "Please provide a song name. For example: /findspotify Imagine")
+        bot.reply_to(message, "Please provide a song name.")
     except Exception as e:
         bot.reply_to(message, f"An error occurred: {str(e)}")
 

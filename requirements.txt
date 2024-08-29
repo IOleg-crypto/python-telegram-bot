@@ -3,3 +3,5 @@ pyTelegramBotAPI
 spotipy
 googlesearch-python
 spotifysearch
+beautifulsoup4
+

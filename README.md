@@ -26,23 +26,6 @@ $ pip install pyTelegramBotAPI
 
 - To **upgrade** library
 
-```bash
-$ pip install pytelegrambotapi --upgrade
-```
-
-- Install library to searching music in **Spotify**
-
-```bash
-$ pip install pyTelegramBotAPI spotipy
-```
-
-- Install library to searching music in **Google**
-
-```bash
-$ pip install pyTelegramBotAPI googlesearch-python
-```
-
-
 - You can install all libraries by one command
 
 ```bash
