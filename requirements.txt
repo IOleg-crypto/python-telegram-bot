@@ -4,4 +4,4 @@ spotipy
 googlesearch-python
 spotifysearch
 beautifulsoup4
-
+selenium

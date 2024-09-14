@@ -1,12 +1,10 @@
-from library import *
-from spotifysearch.client import Client
+from library import *  # Make sure to install google module: pip install google
 
-# Bot token and Spotify credentials
-bot = telebot.TeleBot("6895824327:AAEyCfrTRh-7wGuIjrAVSe9y2gXxx1Vpunk")  #your token to access bot
+# Your bot token (keep it safe)
+bot = telebot.TeleBot("6895824327:AAEyCfrTRh-7wGuIjrAVSe9y2gXxx1Vpunk")
 
 user_credentials = {}
 messages_to_clear = {}
-
 
 
 # Function to log messages for future clearing
@@ -37,7 +35,7 @@ def start(message):
     )
 
 
-# get song name and artist
+# Get song name and artist from Google
 @bot.message_handler(commands=["findgoogle"])
 def get_song_google(message):
     try:
@@ -48,38 +46,83 @@ def get_song_google(message):
         bot.reply_to(message, f"An error occurred: {str(e)}")
 
 
+# Get song name and artist from iTunes
 @bot.message_handler(commands=["finditunes"])
 def get_song_itunes(message):
     try:
         # Ask the user for the song name
-        msg = bot.reply_to(message, "Please enter the song name you want to search for on ITunes.")
+        msg = bot.reply_to(message, "Please enter the song name you want to search for on iTunes.")
         bot.register_next_step_handler(msg, find_song_itunes)
     except Exception as e:
         bot.reply_to(message, f"An error occurred: {str(e)}")
 
 
-@bot.message_handler(commands=["findspotify"])
-def get_song_spotify(message):
+# Function to search Spotify for a song (scraping method, for educational purposes)
+def find_song_spotify(message):
     try:
-        # Ask the user for the song name
-        msg = bot.reply_to(message, "Please enter the song name you want to search for on Spotify.")
-        bot.register_next_step_handler(msg, find_song_spotify)
+        query = message.text.strip().replace(' ', '%20')  # Format query for URL
+        search_url = f"https://open.spotify.com/search/{query}"
+
+        # Set up Selenium WebDriver (headless mode)
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        driver = webdriver.Chrome(options=chrome_options)
+
+        # Open Spotify search page
+        driver.get(search_url)
+
+        # Wait for the song element to load
+        try:
+            # Adjust the XPath after inspecting Spotify's structure
+            first_song = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, '//a[contains(@href, "/track/")]'))
+            )
+
+            # Extract song info
+            track_name = first_song.text
+            artist_name = first_song.find_element(By.XPATH, '..//span[contains(@class, "artist-name")]').text
+            track_url = first_song.get_attribute('href')
+
+            # Send response
+            bot.reply_to(message, f"{track_name} by {artist_name}\n{track_url}")
+        except:
+            bot.reply_to(message, "No results found on Spotify.")
+
+        driver.quit()
     except Exception as e:
         bot.reply_to(message, f"An error occurred: {str(e)}")
+
+
+# Command to find song on Spotify
+@bot.message_handler(commands=["findspotify"])
+def command_find_song(message):
+    # Strip command part and pass only the song query
+    query = message.text.lstrip('/findspotify').strip()
+
+    if query:
+        # Set message.text to the extracted query for find_song_spotify to use
+        message.text = query
+        find_song_spotify(message)  # Call the function to process the query
+    else:
+        # If no query is provided, prompt the user to input one
+        bot.reply_to(message, "Please provide a song name after the command.")
 
 
 # Handlers for button presses
 # Example handler to trigger Spotify search
 @bot.message_handler(func=lambda message: message.text.startswith("Find music in Spotify"))
 def handle_spotify_search(message):
-    get_song_spotify(message)
+    bot.reply_to(message, "Please enter the song name you want to search for on Spotify.")
+    bot.register_next_step_handler(message, find_song_spotify)
 
 
+# Handle Google search button press
 @bot.message_handler(func=lambda message: message.text == "Find music in Google")
 def handle_google_button(message):
     get_song_google(message)
 
 
+# Handle iTunes search button press
 @bot.message_handler(func=lambda message: message.text == "Find music in iTunes")
 def handle_itunes_button(message):
     get_song_itunes(message)
@@ -95,11 +138,10 @@ def handle_clear_signal(message):
 
 
 # Function to find songs on Google
-
 def find_song_google(message):
     try:
         query = message.text + " song"
-        results = search(query, num_results=30)
+        results = search(query, num_results=5)  # Limiting to 5 results
         if results:
             response = "Top search results:\n" + "\n".join(results)
             bot.reply_to(message, response)
@@ -127,8 +169,7 @@ def clear_chat(message):
     except Exception as e:
         bot.reply_to(message, f"Error while deleting messages: {e}")
 
-    bot.send_message(message, "Chat cleared.")
-
+    bot.send_message(chat_id, "Chat cleared.")
 
 
 # Function to handle /website command
@@ -140,7 +181,7 @@ def site(message):
 
     bot.send_message(
         message.chat.id,
-        "That author's repository: https://github.com/IOleg-crypto/",
+        "Author's repository: https://github.com/IOleg-crypto/",
         reply_markup=markup
     )
 
@@ -156,7 +197,7 @@ def go_to_website(message):
 # Function to search iTunes for a song
 def find_song_itunes(message):
     try:
-        query = message.text.split(" ", 1)[1]
+        query = message.text
         results = search_itunes(query)
         if results:
             response = "\n".join(
@@ -180,32 +221,6 @@ def search_itunes(query):
     return []
 
 
-# Function to search Spotify for a song
-def find_song_spotify(message):
-    try:
-        query = message.text
-        search_url = f"https://open.spotify.com/search/{query.replace(' ', '%20')}"
-        headers = {"User-Agent": "Mozilla/5.0"}
-        response = requests.get(search_url, headers=headers)
-
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            results = soup.find_all('a', {'data-testid': 'search-result-item'})
-            if results:
-                top_result = results[0]
-                track_name = top_result.text
-                track_url = f"https://open.spotify.com{top_result['href']}"
-                bot.reply_to(message, f"{track_name}\n{track_url}")
-            else:
-                bot.reply_to(message, "No results found on Spotify.")
-        else:
-            bot.reply_to(message, "Failed to retrieve search results.")
-    except IndexError:
-        bot.reply_to(message, "Please provide a song name.")
-    except Exception as e:
-        bot.reply_to(message, f"An error occurred: {str(e)}")
-
-
 # Generic message handler
 @bot.message_handler(func=lambda message: True)
 def info(message):
@@ -216,4 +231,4 @@ def info(message):
 
 
 # Start polling
-bot.infinity_polling()
+bot.polling(none_stop=True)
