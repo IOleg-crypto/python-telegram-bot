@@ -1,10 +1,16 @@
-from library import *  # Make sure to install google module: pip install google
+from library import *
 
 # Your bot token (keep it safe)
 bot = telebot.TeleBot("6895824327:AAEyCfrTRh-7wGuIjrAVSe9y2gXxx1Vpunk")
 
 user_credentials = {}
 messages_to_clear = {}
+
+CLIENT_ID = "0476ac8beb094d76bb56edc85caed325"
+CLIENT_SECRET = "dfc7084b525f47088abbd76007364efc"
+
+spotify_auth = SpotifyClientCredentials(client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
+sp = spotipy.Spotify(auth_manager=spotify_auth)
 
 
 # Function to log messages for future clearing
@@ -60,35 +66,18 @@ def get_song_itunes(message):
 # Function to search Spotify for a song (scraping method, for educational purposes)
 def find_song_spotify(message):
     try:
-        query = message.text.strip().replace(' ', '%20')  # Format query for URL
-        search_url = f"https://open.spotify.com/search/{query}"
+        query = message.text
+        results = sp.search(q=query, limit=10, type='track')
 
-        # Set up Selenium WebDriver (headless mode)
-        chrome_options = Options()
-        chrome_options.add_argument("--headless")
-        driver = webdriver.Chrome(options=chrome_options)
-
-        # Open Spotify search page
-        driver.get(search_url)
-
-        # Wait for the song element to load
-        try:
-            # Adjust the XPath after inspecting Spotify's structure
-            first_song = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, '//a[contains(@href, "/track/")]'))
+        if results and results['tracks']['items']:
+            tracks = results['tracks']['items']
+            response = "\n".join(
+                [f"{track['name']} by {track['artists'][0]['name']}\n{track['external_urls']['spotify']}" for track in
+                 tracks]
             )
-
-            # Extract song info
-            track_name = first_song.text
-            artist_name = first_song.find_element(By.XPATH, '..//span[contains(@class, "artist-name")]').text
-            track_url = first_song.get_attribute('href')
-
-            # Send response
-            bot.reply_to(message, f"{track_name} by {artist_name}\n{track_url}")
-        except:
+            bot.reply_to(message, f"Top Spotify results:\n{response}")
+        else:
             bot.reply_to(message, "No results found on Spotify.")
-
-        driver.quit()
     except Exception as e:
         bot.reply_to(message, f"An error occurred: {str(e)}")
 
